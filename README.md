@@ -14,3 +14,5 @@ Features
 3. Uses a number of Event Listeners
 4. Players can choose to set time during the beginning of game
 5. Shows the dismissed pieces for both the alliances
+
+Note :- For understanding the Object Oriented Design, kindly go through the Documentation.
