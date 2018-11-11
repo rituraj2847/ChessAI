@@ -1,6 +1,6 @@
 ChessAI
 ========
-An AI-based chess game that implements basic OOP concepts in Java. Uses Alpha-Beta Pruning over the standard Minimax algorithm to find the optimal moves with a depth of 4.
+An AI-based chess game that implements basic OOP concepts in Java. Uses Alpha-Beta Pruning on top of the standard Minimax algorithm to find the optimal moves with a depth of 4.
 
 Executing the Game
 ----------------
