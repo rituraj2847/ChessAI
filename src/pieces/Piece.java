@@ -11,8 +11,9 @@ public abstract class Piece {
 	protected final int piecePosition;
 	protected final Alliance pieceAlliance;
 
-	Piece(final PieceType pieceType, final int piecePosition,
-		  final Alliance pieceAlliance) {
+	Piece(PieceType pieceType, 
+			int piecePosition,
+			Alliance pieceAlliance) {
 		this.pieceType = pieceType;
 		this.piecePosition = piecePosition;
 		this.pieceAlliance = pieceAlliance;
@@ -34,72 +35,37 @@ public abstract class Piece {
 
 	public abstract Piece movePiece(Move move);
 
-	public enum PieceType {
-		KING("K"){
+	public static enum PieceType {
+		KING("K", 10000){
+			@Override
 			public boolean isKing(){
 				return true;
 			}
-			public boolean isRook(){
-				return false;
-			}
 		},
-		QUEEN("Q"){
-			public boolean isKing(){
-				return false;
-			}
-			public boolean isRook(){
-				return false;
-			}
-
-		},
-		ROOK("R"){
-			public boolean isKing() {
-				return false;
-			}
+		QUEEN("Q", 900),
+		ROOK("R", 500){
+			@Override
 			public boolean isRook(){
 				return true;
 			}
-
 		},
-		BISHOP("B"){
-			public boolean isKing(){
-				return false;
-			}
-			public boolean isRook(){
-				return false;
-			}
-
-		},
-		KNIGHT("N"){
-			public boolean isKing(){
-				return false;
-			}
-			public boolean isRook(){
-				return false;
-			}
-
-		},
-		PAWN("P"){
-			public boolean isKing(){
-				return false;
-			}
-			public boolean isRook(){
-				return false;
-			}
-
-		};
+		BISHOP("B", 300),
+		KNIGHT("N", 300),
+		PAWN("P", 100);
 		private String pieceName;
-		PieceType( final String pieceName) {
+		private int pieceValue;
+		PieceType(final String pieceName, final int pieceValue) {
 			this.pieceName = pieceName;
-
+			this.pieceValue = pieceValue;
 		}
 		@Override
 		public String toString() {
 			return this.pieceName;
 		}
-
-		public abstract boolean isKing();
-
-		public abstract boolean isRook();
+		public int getPieceValue() {
+			return this.pieceValue;
+		}
+		public boolean isKing() {return false;}
+		public boolean isRook() {return false;}
 	}
 }

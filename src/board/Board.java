@@ -3,7 +3,6 @@ import engine.Alliance;
 import pieces.*;
 import java.util.*;
 import player.*;
-import com.google.common.collect.Iterables;
 
 public class Board {
 
@@ -40,11 +39,11 @@ public class Board {
 		return this.currentPlayer;
 	}
 	public Player whitePlayer(){
-	    return this.whitePlayer;
-    }
-    public Player blackPlayer(){
-        return this.blackPlayer;
-    }
+	    	return this.whitePlayer;
+    	}
+	public Player blackPlayer(){
+		return this.blackPlayer;
+	}
 	public Collection<Piece> getBlackPieces() {
 		return this.blackPieces;
 	}
@@ -122,7 +121,10 @@ public class Board {
 		return builder.build();
 	}
     public Iterable<Move> getAllLegalMoves() {
-        return Iterables.unmodifiableIterable(Iterables.concat(this.whitePlayer().getLegalMoves(), this.blackPlayer().getLegalMoves()));
+    	List<Move> allMoves = new ArrayList<>();
+    	allMoves.addAll(this.whitePlayer().getLegalMoves());
+    	allMoves.addAll(this.blackPlayer().getLegalMoves());
+        return Collections.unmodifiableList(allMoves);
     }
 
     public static class Builder {
@@ -132,9 +134,8 @@ public class Board {
 		public Builder() {
 			this.boardConfig = new HashMap<>();
 		}
-		public Builder setPiece(final Piece piece) {
+		public void setPiece(final Piece piece) {
 			this.boardConfig.put(piece.getPiecePosition(), piece);
-			return this;
 		}
 		public Builder setMoveMaker(final Alliance nextMoveMaker) {
 			this.nextMoveMaker = nextMoveMaker;

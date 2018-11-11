@@ -1,7 +1,7 @@
 package player;
+
 import board.*;
 import pieces.*;
-
 import java.util.*;
 import engine.Alliance;
 
@@ -54,25 +54,24 @@ public abstract class Player {
     public boolean isInStaleMate(){
         return !this.isInCheck && !hasEscapeMoves();
     }
-
-    protected boolean hasEscapeMoves() {
+    protected boolean hasEscapeMoves(){
         for(final Move move : getLegalMoves()){
-            final MoveTransition transition = makeMove(move);
-            if(transition.getMoveStatus().isDone()){
-                return true;
-            }
+	        final MoveTransition transition = makeMove(move);
+	        if(transition.getMoveStatus().isDone()){
+	            return true;
+	        }
         }
         return false;
     }
-    public MoveTransition makeMove(final Move move) {
-        if(!isMoveLegal(move)) {
+    public MoveTransition makeMove(final Move move){
+        if(!isMoveLegal(move)){
             return new MoveTransition(this.board, move, MoveStatus.ILLEGAL_MOVE);
         }
         final Board transitionBoard = move.execute();
         final Collection<Move> kingAttacksOnCurrent = Player.calculateAttacksOnTile(
                 transitionBoard.currentPlayer().getOpponent().getPlayerKing().getPiecePosition(),
                 transitionBoard.currentPlayer().getLegalMoves());
-        if(!kingAttacksOnCurrent.isEmpty()){
+        if(!kingAttacksOnCurrent.isEmpty()) {
             return new MoveTransition(this.board, move, MoveStatus.LEAVES_PLAYER_IN_CHECK);
         }
         return new MoveTransition(transitionBoard, move, MoveStatus.DONE);

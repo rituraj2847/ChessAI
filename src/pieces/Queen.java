@@ -1,4 +1,5 @@
 package pieces;
+
 import java.util.*;
 import engine.Alliance;
 import board.Board;

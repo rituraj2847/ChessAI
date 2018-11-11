@@ -8,7 +8,8 @@ public abstract class Move {
 	protected final Board board;
 	protected final int destinationCoordinate;
 	public static final Move NULL_MOVE = new NullMove();
-	private Move(final Board board, final Piece movedPiece, final int destinationCoordinate) {
+	private Move(final Board board, final Piece movedPiece, 
+				final int destinationCoordinate) {
 		this.board = board;
 		this.movedPiece = movedPiece;
 		this.destinationCoordinate = destinationCoordinate;
@@ -28,27 +29,26 @@ public abstract class Move {
 	public Piece getMovedPiece(){
 		return this.movedPiece;
 	}
-	public boolean isAttack() {
+	public boolean isAttack(){
 		return false;
 	}
-	public Piece getAttackedPiece() {
+	public Piece getAttackedPiece(){
 		return null;
 	}
-
 	public Board execute() {
-        final Builder builder = new Builder();
-        for (final Piece piece : this.board.currentPlayer().getActivePieces()) {
-            if(!this.movedPiece.equals(piece)){
-                builder.setPiece(piece);
-            }
-        }
-        for (final Piece piece : this.board.currentPlayer().getOpponent().getActivePieces()) {
-            builder.setPiece(piece);
-        }
-        builder.setPiece(this.movedPiece.movePiece(this));
-        builder.setMoveMaker(this.board.currentPlayer().getOpponent().getAlliance());
-        return builder.build();
-    }
+		final Builder builder = new Builder();
+		for (final Piece piece : this.board.currentPlayer().getActivePieces()) {
+		    if(!this.movedPiece.equals(piece)){
+		    	builder.setPiece(piece);
+		    }
+		}
+		for (final Piece piece : this.board.currentPlayer().getOpponent().getActivePieces()) {
+		    builder.setPiece(piece);
+		}
+		builder.setPiece(this.movedPiece.movePiece(this));
+		builder.setMoveMaker(this.board.currentPlayer().getOpponent().getAlliance());
+		return builder.build();
+	}
 	public static final class MajorMove extends Move {
 		public MajorMove(final Board board,
 						 final Piece movedPiece,
@@ -56,7 +56,7 @@ public abstract class Move {
 			super(board, movedPiece, destinationCoordinate);
 		}
 	}
-	public static class AttackMove extends Move {
+	public static final class AttackMove extends Move {
 		final Piece attackedPiece;
 		public AttackMove(final Board board, final Piece movedPiece,
 				final int destinationCoordinate, final Piece attackedPiece){
@@ -77,16 +77,16 @@ public abstract class Move {
 			super(null, -1);
 		}
 		@Override
-		public Board execute(){
+		public Board execute() {
 			throw new RuntimeException("Cannot execute board!");
 		}
 	}
 	public static Move createMove(final Board board,
-								  final int currentCoordinate,
-								  final int destinationCoordinate) {
+				      final int currentCoordinate,
+				      final int destinationCoordinate) {
 		for (final Move move : board.getAllLegalMoves()) {
 			if (move.getCurrentCoordinate() == currentCoordinate &&
-					move.getDestinationCoordinate() == destinationCoordinate) {
+			    move.getDestinationCoordinate() == destinationCoordinate) {
 				return move;
 			}
 		}

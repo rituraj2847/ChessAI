@@ -11,6 +11,9 @@ import javax.swing.Timer;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import ai.AI;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -22,13 +25,12 @@ import static javax.swing.SwingUtilities.isRightMouseButton;
 
 public class Table {
     private final JFrame gameFrame;
-    private final BoardPanel boardPanel;
-    private final ScorePanel scorePanel;
+    private BoardPanel boardPanel;
+    private ScorePanel scorePanel;
     private Board chessBoard;
     private Tile sourceTile;
     private Tile destinationTile;
     private Piece humanMovedPiece;
-    private JOptionPane optionPane;
     private final JSlider slider;
     private final static Dimension OUTER_FRAME_DIMENSION = new Dimension(1200,900);
     private final static Dimension BOARD_FRAME_DIMENSION = new Dimension(700,900);
@@ -37,6 +39,7 @@ public class Table {
     private static String defaultPiecesImagePath = "icons/";
     static Timer timer;
     static int timeLeft, sliderTime;
+    private boolean ai;
 
     public Table() {
         this.gameFrame = new JFrame("ChessGame");
@@ -48,27 +51,52 @@ public class Table {
         slider.setMajorTickSpacing(2);
         slider.setPaintTicks(true);
         slider.setPaintLabels(true);
-        this.sliderTime = 3;
+        sliderTime = 3;
+        GridBagConstraints gbc = new GridBagConstraints();
+        JFrame parent = new JFrame("New Game");
+        final JPanel panel = new JPanel(new GridBagLayout());
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weighty = 1;
+        panel.add(new JLabel("Select Type of Play: "), gbc);
+        final JRadioButton op1 = new JRadioButton("Human vs Human", true);
+        final JRadioButton op2 = new JRadioButton("Human vs Computer");
+        final ButtonGroup bg = new ButtonGroup();
+        bg.add(op1); bg.add(op2);
+        final JButton button = new JButton("OK");
+        button.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent ae) {
+        		parent.dispose();
+        		boardPanel = new BoardPanel();
+                scorePanel = new ScorePanel();
+                gameFrame.add(boardPanel, BorderLayout.CENTER);
+                gameFrame.add(scorePanel, BorderLayout.EAST);
+                gameFrame.setVisible(true);
+                gameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                timeLeft = sliderTime*60;
+                if(op1.isSelected()) ai = false;
+                else ai = true;
+                parent.setVisible(false);
+        	}
+        });
+        gbc.gridy++; gbc.weighty = 1;
+        panel.add(op1, gbc);
+        gbc.gridy++;
+        panel.add(op2, gbc);
         slider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                    optionPane.setInputValue(slider.getValue());
-                sliderTime = (int) optionPane.getInputValue();
-
+                sliderTime = (int) slider.getValue();
             }
         });
-        JFrame parent = new JFrame();
-        this.optionPane = new JOptionPane();
-        optionPane.setMessage(new Object[] { "Select value for timer(mins): ", slider });
-        JDialog dialog = optionPane.createDialog(parent, "Set timer");
-        dialog.setVisible(true);
-        this.timeLeft = this.sliderTime*60;
-        this.boardPanel = new BoardPanel();
-        this.scorePanel = new ScorePanel();
-        this.gameFrame.add(this.boardPanel, BorderLayout.CENTER);
-        this.gameFrame.add(this.scorePanel, BorderLayout.EAST);
-        this.gameFrame.setVisible(true);
-        this.gameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        gbc.gridy++; gbc.weighty=2;
+        panel.add(new JLabel("Select time for each move: "), gbc);
+        gbc.gridy = 10;
+        panel.add(slider, gbc);
+        gbc.gridy++; gbc.weighty = 4;
+        panel.add(button, gbc);
+        parent.add(panel);
+        parent.setSize(400, 400);
+        parent.setVisible(true);
+        parent.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
     private JMenuBar createTableMenuBar() {
         final JMenuBar tableMenuBar = new JMenuBar();
@@ -103,18 +131,18 @@ public class Table {
             super(new GridLayout(8, 8));
             this.boardTiles = new ArrayList<>();
             for (int i = 0; i < BoardUtils.NUM_TILES; i++) {
-                TilePanel tilePanel = new TilePanel(this, i);
+                TilePanel tilePanel = new TilePanel(i);
                 this.boardTiles.add(tilePanel);
                 add(tilePanel);
             }
             setPreferredSize(BOARD_FRAME_DIMENSION);
             validate();
         }
-        public void drawBoard() {
+        public void drawBoard(){
             this.removeAll();
             this.boardTiles.clear();
             for (int i = 0; i < BoardUtils.NUM_TILES; i++) {
-                TilePanel tilePanel = new TilePanel(this, i);
+                TilePanel tilePanel = new TilePanel(i);
                 this.boardTiles.add(tilePanel);
                 add(tilePanel);
             }
@@ -128,7 +156,7 @@ public class Table {
 
     private final class TilePanel extends JPanel {
         private final int tileId;
-        TilePanel(final BoardPanel boardPanel, final int tileId) {
+        TilePanel(final int tileId) {
             super(new GridBagLayout());
             this.tileId = tileId;
             setPreferredSize(TILE_PANEL_DIMENSION);
@@ -165,64 +193,12 @@ public class Table {
                             if(move != Move.NULL_MOVE) {
                                 final MoveTransition transition = chessBoard.currentPlayer().makeMove(move);
                                 if (transition.getMoveStatus().isDone()) {
-                                    chessBoard = transition.getBoard();
-                                    scorePanel.timeLabel.setText(chessBoard.currentPlayer().getAlliance().toString() + " to move");
-                                    timeLeft = sliderTime*60;
-
-                                    //add the attacked piece to respective panel
-                                    if (move.isAttack()) {
-                                        try {
-                                            final BufferedImage image = ImageIO.read
-                                                    (getClass().getResource(defaultPiecesImagePath + move.getAttackedPiece().getPieceAlliance().toString().substring(0, 1) +
-                                                            move.getAttackedPiece().toString() + ".gif"));
-                                            if (chessBoard.currentPlayer().getAlliance() == Alliance.BLACK) {
-                                                scorePanel.black.add(new JLabel(new ImageIcon(image.getScaledInstance(50, 50, Image.SCALE_SMOOTH))));
-                                            } else {
-                                                scorePanel.white.add(new JLabel(new ImageIcon(image.getScaledInstance(50, 50, Image.SCALE_SMOOTH))));
-                                            }
-                                        } catch (Exception ae) {
-                                            ae.printStackTrace();
-                                        }
-                                    }
-                                    if(chessBoard.currentPlayer().isInCheckMate() || chessBoard.currentPlayer().isInStaleMate()) {
-                                        if(chessBoard.currentPlayer().isInStaleMate()) {
-                                            scorePanel.checkmateLabel.setText("<html>STALEMATE!<br>" + chessBoard.currentPlayer().getOpponent().getAlliance().toString() + " won the game</html>");
-                                        }
-                                        else {
-                                            scorePanel.checkmateLabel.setText("<html>CHECKMATE!<br>" + chessBoard.currentPlayer().getOpponent().getAlliance().toString() + " won the game</html>");
-                                        }
-                                        SwingUtilities.invokeLater(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                boardPanel.drawBoard();
-                                            }
-                                        });
-                                        JFrame dialog = new JFrame();
-                                        int a = JOptionPane.showConfirmDialog(dialog, "Click Yes to play again & No to quit");
-                                        if (a == JOptionPane.YES_OPTION) {
-                                            gameFrame.dispose();
-                                            new Table();
-                                        } else if(a == JOptionPane.NO_OPTION) {
-                                            System.exit(0);
-                                        }
-                                    }
-                                    else if(chessBoard.currentPlayer().isInCheck()) {
-                                        scorePanel.checkmateLabel.setText("CHECK");
-                                    }
-                                    else {
-                                        scorePanel.checkmateLabel.setText("");
-                                    }
+                                	chessBoard = transition.getBoard();
+                                	makeChessMove(move);
+                                    //AI move alternately
+                                	if(ai) makeAIMove();
                                 }
                             }
-                            sourceTile = null;
-                            humanMovedPiece = null;
-                            destinationTile = null;
-                            SwingUtilities.invokeLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    boardPanel.drawBoard();
-                                }
-                            });
                         }
                     }
                 }
@@ -236,6 +212,63 @@ public class Table {
                 public void mouseExited(final MouseEvent e) { }
             });
             validate();
+        }
+        private void makeAIMove() {
+        	AI.alphabeta(chessBoard, 4, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
+        	Move bestMove = AI.bestMove;
+        	MoveTransition transition = chessBoard.currentPlayer().makeMove(bestMove);
+        	chessBoard = transition.getBoard();
+        	makeChessMove(bestMove);
+        }
+        private void makeChessMove(final Move move) {
+            scorePanel.timeLabel.setText(chessBoard.currentPlayer().getAlliance().toString() + " to move");
+            timeLeft = sliderTime*60;
+            sourceTile = null;
+            humanMovedPiece = null;
+            destinationTile = null;
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    boardPanel.drawBoard();
+                }
+            });
+            //add the attacked piece to respective panel
+            if (move.isAttack()) {
+                try {
+                    final BufferedImage image = ImageIO.read
+                            (getClass().getResource(defaultPiecesImagePath + move.getAttackedPiece().getPieceAlliance().toString().substring(0, 1) +
+                                    move.getAttackedPiece().toString() + ".gif"));
+                    if (chessBoard.currentPlayer().getAlliance() == Alliance.BLACK) {
+                        scorePanel.black.add(new JLabel(new ImageIcon(image.getScaledInstance(50, 50, Image.SCALE_SMOOTH))));
+                    } else {
+                        scorePanel.white.add(new JLabel(new ImageIcon(image.getScaledInstance(50, 50, Image.SCALE_SMOOTH))));
+                    }
+                } catch (Exception ae) {
+                    ae.printStackTrace();
+                }
+            }
+            if(chessBoard.currentPlayer().isInCheckMate() || chessBoard.currentPlayer().isInStaleMate()) {
+                if(chessBoard.currentPlayer().isInStaleMate()) {
+                    scorePanel.checkmateLabel.setText("<html>STALEMATE!<br>" + chessBoard.currentPlayer().getOpponent().getAlliance().toString() + " won the game</html>");
+                }
+                else {
+                    scorePanel.checkmateLabel.setText("<html>CHECKMATE!<br>" + chessBoard.currentPlayer().getOpponent().getAlliance().toString() + " won the game</html>");
+                }
+                JFrame dialog = new JFrame();
+                int a = JOptionPane.showConfirmDialog(dialog, "Click Yes to play again & No to quit");
+                if (a == JOptionPane.YES_OPTION) {
+                    gameFrame.dispose();
+                    new Table();
+                } else if(a == JOptionPane.NO_OPTION) {
+                    System.exit(0);
+                }
+            }
+            else if(chessBoard.currentPlayer().isInCheck()) {
+                scorePanel.checkmateLabel.setText("CHECK");
+            }
+            else {
+                scorePanel.checkmateLabel.setText("");
+            }
         }
         private void assignTilePieceIcon() {
             this.removeAll();
@@ -251,14 +284,12 @@ public class Table {
             }
         }
         private void highlightLegals(final Board board) {
-            if(true){
-                for(final Move move : pieceLegalMoves(board)) {
-                    TilePanel tilePanel = boardPanel.boardTiles.get(move.getDestinationCoordinate());
-                    try {
-                        tilePanel.setBorder(BorderFactory.createLineBorder(Color.blue,5));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+            for(final Move move : pieceLegalMoves(board)) {
+                TilePanel tilePanel = boardPanel.boardTiles.get(move.getDestinationCoordinate());
+                try {
+                    tilePanel.setBorder(BorderFactory.createLineBorder(Color.blue,5));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -301,14 +332,14 @@ public class Table {
             time = new JLabel("", JLabel.CENTER);
             time.setFont(new Font("Monaco",Font.PLAIN,35));
             time.setForeground(new Color(5773342));;
-            timer=new Timer(1000, new ActionListener() {
+            timer = new Timer(1000, new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     timeLeft -= 1;
                     int min = timeLeft/60;
                     int sec = timeLeft%60;
                     time.setText(String.valueOf(min)+":"+(sec>=10?String.valueOf(sec):"0"+String.valueOf(sec)));
-                    if(timeLeft<=0) {
+                    if(timeLeft <= 0) {
                         timer.stop();
                         checkmateLabel.setText("<html>Time's Up!<br></html>");
                         JFrame dialog = new JFrame();
@@ -329,5 +360,4 @@ public class Table {
             setPreferredSize(SCORE_PANEL_DIMENSION);
         }
     }
-
 }
