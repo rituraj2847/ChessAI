@@ -1,10 +1,11 @@
-Chess
+ChessAI
 ========
-A simple Human Vs. Human GUI based chess game that implements basic OOP concepts in Java.
+An AI-based chess game that implements basic OOP concepts in Java. Uses Alpha-Beta Pruning over the standard Minimax algorithm to find the optimal moves with a depth of 4.
 
 Executing the Game
 ----------------
 The game can be played by simply running Chess.jar file. The game can also be imported directly to an IDE.
+Note :- .jar file will execute only when you've JDK installed in your machine.
 
 Features
 --------
