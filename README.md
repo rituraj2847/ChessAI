@@ -4,7 +4,7 @@ An AI-based chess game that implements basic OOP concepts in Java. Uses Alpha-Be
 
 Executing the Game
 ----------------
-The game can be played by simply running Chess.jar file. The game can also be imported directly to an IDE.
+The game can be played by simply running ChessAI.jar file. The game can also be imported directly to an IDE.
 Note :- .jar file will execute only when you've JDK installed in your machine.
 
 Features
