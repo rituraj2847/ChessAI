@@ -59,6 +59,8 @@ public class AI {
 				}
 			}
 		}
+		//in case when no move can be made
+		if(value == Integer.MIN_VALUE ) value++;
 		return value;
 	}
 }
